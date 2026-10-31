@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: simacmart-backend
+    env: docker
+    dockerfilePath: Dockerfile
+    plan: free
+    region: ohio
+    branch: main
+    autoDeploy: true
+    healthCheckPath: /api/v1/dashboard/resumen?idUnidad=1
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_USER
+        sync: false
+      - key: DATABASE_PASSWORD
+        sync: false
+      - key: SQLITE_PATH
+        value: /app/data/simacmart.db

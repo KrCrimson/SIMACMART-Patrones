@@ -1,0 +1,74 @@
+/* ==========================================================================
+   SIMACMART DESIGN SYSTEM - THEME VARIABLES & PALETTE
+   Inspirado en agua, niebla profunda, tecnología IoT y glassmorphism premium.
+   ========================================================================== */
+
+:root {
+  /* Paleta Base HSL - Dark Mode Hídrico */
+  --bg-main: hsl(222, 47%, 9%);         /* Azul noche ultra profundo #0c1222 */
+  --bg-sidebar: hsl(224, 45%, 7%);      /* #0a0f1d */
+  --bg-card: hsl(222, 40%, 13%);        /* Contenedor primario #131c31 */
+  --bg-card-hover: hsl(222, 38%, 16%);  /* Hover card */
+  --bg-surface: hsla(222, 40%, 18%, 0.6);/* Vidrio translúcido */
+
+  /* Colores de Acento y Semántica */
+  --accent-cyan: hsl(192, 95%, 52%);    /* #0fe3ff - Agua / Enlace */
+  --accent-blue: hsl(210, 100%, 56%);   /* #1f8fff */
+  --accent-emerald: hsl(156, 75%, 48%); /* #1ecb87 - Éxito / Estado Online */
+  --accent-purple: hsl(265, 85%, 65%);  /* #a066ff - Predicción / ML */
+  --accent-amber: hsl(40, 96%, 53%);    /* Alerta / Sensor */
+  --accent-rose: hsl(350, 89%, 60%);    /* Peligro / Vaciado */
+
+  /* Textos y Jerarquía */
+  --text-primary: hsl(210, 40%, 98%);
+  --text-secondary: hsl(215, 20%, 75%);
+  --text-muted: hsl(215, 16%, 55%);
+  --text-inverse: hsl(222, 47%, 10%);
+
+  /* Bordes y Sombras */
+  --border-subtle: hsla(220, 30%, 30%, 0.35);
+  --border-focus: hsla(192, 95%, 52%, 0.6);
+  --shadow-subtle: 0 4px 20px -2px rgba(0, 0, 0, 0.45);
+  --shadow-glow-cyan: 0 0 25px -4px hsla(192, 95%, 52%, 0.35);
+  --shadow-glow-purple: 0 0 25px -4px hsla(265, 85%, 65%, 0.35);
+
+  /* Vidrio Glassmorphism */
+  --glass-blur: blur(14px);
+  --glass-border: 1px solid hsla(220, 30%, 45%, 0.18);
+
+  /* Tipografías */
+  --font-main: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-heading: 'Outfit', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Transiciones */
+  --trans-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --trans-smooth: 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-main);
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  line-height: 1.5;
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Enlaces y botones base */
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button, input, select, textarea {
+  font-family: inherit;
+  font-size: inherit;
+}

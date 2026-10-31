@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  simacmart-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: simacmart_backend
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - DATABASE_URL=jdbc:postgresql://postgres-db:5432/simacmart_db
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=simacmart_secret_password
+      - SQLITE_PATH=/app/data/simacmart.db
+    volumes:
+      - simacmart_sqlite_data:/app/data
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+    networks:
+      - simacmart_net
+
+  postgres-db:
+    image: postgres:16-alpine
+    container_name: simacmart_postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=simacmart_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=simacmart_secret_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - simacmart_pg_data:/var/lib/postgresql/data
+      - ./src/main/resources/db/migration/V1__schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+      - ./src/main/resources/db/migration/V2__seed.sql:/docker-entrypoint-initdb.d/02_seed.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d simacmart_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - simacmart_net
+
+volumes:
+  simacmart_sqlite_data:
+    name: simacmart_sqlite_data
+  simacmart_pg_data:
+    name: simacmart_pg_data
+
+networks:
+  simacmart_net:
+    driver: bridge

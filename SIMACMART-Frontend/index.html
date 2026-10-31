@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIMACMART | Sistema de Monitoreo y Análisis de Atrapanieblas</title>
+  <meta name="description" content="Dashboard en tiempo real para el monitoreo de captación hídrica mediante niebla y meteorología IoT (Ecowitt y Balanza ESP32) en Pachía, Tacna.">
+  
+  <!-- Tipografía Google Fonts: Outfit & Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Chart.js para visualización de series temporales -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <!-- Hilos de Estilo CSS -->
+  <link rel="stylesheet" href="css/theme.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+</head>
+<body class="dark-theme">
+  <div class="app-container">
+    
+    <!-- SIDEBAR DE NAVEGACIÓN -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-mark">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+          </svg>
+        </div>
+        <div class="logo-text">
+          <h2>SIMACMART</h2>
+          <span>Atrapanieblas IoT • UPT</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="#/dashboard" class="nav-item active" data-route="dashboard" id="nav-dashboard">
+          <span class="nav-icon">📊</span>
+          <span class="nav-label">Dashboard en Vivo</span>
+          <span class="nav-badge pulse-dot"></span>
+        </a>
+        <a href="#/historial" class="nav-item" data-route="historial" id="nav-historial">
+          <span class="nav-icon">📈</span>
+          <span class="nav-label">Historial y Filtros</span>
+        </a>
+        <a href="#/vaciados" class="nav-item" data-route="vaciados" id="nav-vaciados">
+          <span class="nav-icon">💧</span>
+          <span class="nav-label">Eventos de Vaciado</span>
+        </a>
+        <a href="#/prediccion" class="nav-item" data-route="prediccion" id="nav-prediccion">
+          <span class="nav-icon">🔮</span>
+          <span class="nav-label">Predicción Hídrica</span>
+        </a>
+        <a href="#/nodos" class="nav-item" data-route="nodos" id="nav-nodos">
+          <span class="nav-icon">🛰️</span>
+          <span class="nav-label">Gestión de Nodos</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="connection-status-card">
+          <div class="status-indicator-row">
+            <span class="status-dot online" id="backendStatusDot"></span>
+            <span class="status-text" id="backendStatusText">Backend Conectado</span>
+          </div>
+          <small class="server-endpoint" id="backendUrlDisplay">http://localhost:8080</small>
+        </div>
+
+        <div class="user-profile-badge" id="userProfileBadge">
+          <div class="user-avatar" id="userAvatar">OP</div>
+          <div class="user-info">
+            <strong id="userName">Operador Pachía</strong>
+            <small id="userRole">OPERADOR</small>
+          </div>
+          <button class="logout-btn" id="logoutBtn" title="Cerrar sesión">🚪</button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ÁREA PRINCIPAL -->
+    <main class="main-content">
+      
+      <!-- TOPBAR / HEADER FLOTANTE -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="mobile-toggle-btn" id="mobileMenuBtn" aria-label="Abrir menú">☰</button>
+          <div class="unit-selector-wrapper">
+            <label for="nodeSelect" class="selector-label">📍 Estación Activa:</label>
+            <select id="nodeSelect" class="unit-select">
+              <option value="1">Nodo Pachía #01 (Atrapanieblas Prototipo 1)</option>
+              <option value="2">Nodo Pachía #02 (Unidad de Validación 2)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="topbar-right">
+          <div class="live-clock-badge">
+            <span class="clock-icon">🕒</span>
+            <span id="liveClock">--:--:--</span>
+          </div>
+          <button class="action-btn export-btn" id="quickExportBtn">
+            <span>📥</span> Exportar CSV
+          </button>
+          <button class="action-btn refresh-btn" id="manualRefreshBtn" title="Forzar sincronización">
+            <span>🔄</span> Refrescar
+          </button>
+          <button class="action-btn login-btn" id="authActionBtn">
+            Iniciar Sesión
+          </button>
+        </div>
+      </header>
+
+      <!-- CONTENEDOR DE VISTAS DINÁMICAS (SPA) -->
+      <div class="views-wrapper">
+        
+        <!-- ============================================== -->
+        <!-- VISTA 1: DASHBOARD PRINCIPAL (UC-06) -->
+        <!-- ============================================== -->
+        <section class="view-panel active" id="view-dashboard">
+          <div class="view-header">
+            <div>
+              <h1 class="view-title">Monitoreo Hídrico en Tiempo Real</h1>
+              <p class="view-subtitle">Telemetría de alta frecuencia: Balanza IoT (HX711/ESP32) y Estación Meteorológica Ecowitt</p>
+            </div>
+            <div class="sync-banner" id="syncBanner">
+              <span class="sync-ping"></span>
+              Sincronizado hace <strong id="lastSyncAgo">0s</strong>
+            </div>
+          </div>
+
+          <!-- KPI METRIC CARDS GRID -->
+          <div class="kpi-grid">
+            <div class="kpi-card water-card">
+              <div class="kpi-header">
+                <span class="kpi-label">Captación Acumulada Hoy</span>
+                <span class="kpi-icon-pill water-pill">💧 Agua</span>
+              </div>
+              <div class="kpi-value-row">
+                <span class="kpi-value" id="kpiLitrosHoy">--</span>
+                <span class="kpi-unit">Litros</span>
+              </div>
+              <div class="kpi-trend positive" id="kpiTrend">
+                <span>▲ +14.2%</span> vs ayer a esta hora
+              </div>
+            </div>
+
+            <div class="kpi-card weight-card">
+              <div class="kpi-header">
+                <span class="kpi-label">Peso en Tina Colectora</span>
+                <span class="kpi-icon-pill weight-pill">⚖️ Balanza</span>
+              </div>
+              <div class="kpi-value-row">
+                <span class="kpi-value" id="kpiPesoBalanza">--</span>
+                <span class="kpi-unit">kg</span>
+              </div>
+              <div class="kpi-caption">
+                Capacidad tina: <strong id="tinaCapacity">50.0 kg</strong> (Ocupación: <span id="tinaPct">--%</span>)
+              </div>
+            </div>
+
+            <div class="kpi-card humidity-card">
+              <div class="kpi-header">
+                <span class="kpi-label">Humedad Relativa</span>
+                <span class="kpi-icon-pill humidity-pill">🌫️ Niebla</span>
+              </div>
+              <div class="kpi-value-row">
+                <span class="kpi-value" id="kpiHumedad">--</span>
+                <span class="kpi-unit">%</span>
+              </div>
+              <div class="kpi-caption" id="nieblaCondition">Condición óptima para condensación</div>
+            </div>
+
+            <div class="kpi-card temp-card">
+              <div class="kpi-header">
+                <span class="kpi-label">Temperatura Ambiente</span>
+                <span class="kpi-icon-pill temp-pill">🌡️ Clima</span>
+              </div>
+              <div class="kpi-value-row">
+                <span class="kpi-value" id="kpiTemp">--</span>
+                <span class="kpi-unit">°C</span>
+              </div>
+              <div class="kpi-caption">Punto de Rocío: <strong id="kpiRocio">-- °C</strong></div>
+            </div>
+
+            <div class="kpi-card wind-card">
+              <div class="kpi-header">
+                <span class="kpi-label">Velocidad del Viento</span>
+                <span class="kpi-icon-pill wind-pill">💨 Flujo</span>
+              </div>
+              <div class="kpi-value-row">
+                <span class="kpi-value" id="kpiViento">--</span>
+                <span class="kpi-unit">m/s</span>
+              </div>
+              <div class="kpi-caption">Dirección dominante: <strong id="kpiVientoDir">WNW</strong></div>
+            </div>
+
+            <div class="kpi-card solar-card">
+              <div class="kpi-header">
+                <span class="kpi-label">Radiación Solar</span>
+                <span class="kpi-icon-pill solar-pill">☀️ Solar</span>
+              </div>
+              <div class="kpi-value-row">
+                <span class="kpi-value" id="kpiRadiacion">--</span>
+                <span class="kpi-unit">W/m²</span>
+              </div>
+              <div class="kpi-caption" id="solarCover">Cobertura nubosa alta</div>
+            </div>
+          </div>
+
+          <!-- GRÁFICOS INTERACTIVOS (CHART.JS) -->
+          <div class="charts-grid">
+            <div class="chart-container-card main-chart-span">
+              <div class="card-toolbar">
+                <div class="toolbar-title">
+                  <h3>Curva de Captación vs. Humedad y Peso en Tina</h3>
+                  <small>Evolución de alta resolución durante las últimas 24 horas</small>
+                </div>
+                <div class="chart-legend-custom">
+                  <span class="legend-chip chip-litros">● Litros Captados</span>
+                  <span class="legend-chip chip-peso">● Peso Balanza (kg)</span>
+                  <span class="legend-chip chip-humedad">● Humedad Relativa (%)</span>
+                </div>
+              </div>
+              <div class="chart-canvas-box">
+                <canvas id="captacionChart"></canvas>
+              </div>
+            </div>
+
+            <div class="chart-container-card">
+              <div class="card-toolbar">
+                <div class="toolbar-title">
+                  <h3>Captación Horaria de Niebla</h3>
+                  <small>Patrón de condensación en madrugada y atardecer</small>
+                </div>
+              </div>
+              <div class="chart-canvas-box">
+                <canvas id="hourlyBarChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================== -->
+        <!-- VISTA 2: HISTORIAL Y FILTROS (UC-07, UC-08) -->
+        <!-- ============================================== -->
+        <section class="view-panel" id="view-historial">
+          <div class="view-header">
+            <div>
+              <h1 class="view-title">Historial de Lecturas y Comparativa</h1>
+              <p class="view-subtitle">Consulta de registros históricos consolidados por rangos de fecha y comparación entre unidades</p>
+            </div>
+            <div class="filter-controls-row">
+              <select id="historialPeriodo" class="custom-select">
+                <option value="24h">Últimas 24 Horas</option>
+                <option value="7d" selected>Últimos 7 Días</option>
+                <option value="30d">Últimos 30 Días</option>
+                <option value="mes">Este Mes</option>
+              </select>
+              <button class="action-btn" id="btnFiltrarHistorial">🔍 Aplicar Filtros</button>
+            </div>
+          </div>
+
+          <div class="comparison-card">
+            <div class="comparison-header">
+              <h3>Comparativa Hídrica: Nodo Pachía #01 vs. Nodo Pachía #02</h3>
+              <p>Rendimiento por metro cuadrado de malla atrapanieblas tipo Raschel</p>
+            </div>
+            <div class="chart-canvas-box" style="height: 320px;">
+              <canvas id="comparativaChart"></canvas>
+            </div>
+          </div>
+
+          <div class="table-card">
+            <div class="table-header-row">
+              <h3>Registros Históricos Consolidados</h3>
+              <button class="action-btn" id="btnExportHistorialCsv">📥 Descargar Vista en CSV</button>
+            </div>
+            <div class="table-responsive">
+              <table class="data-table" id="tablaHistorial">
+                <thead>
+                  <tr>
+                    <th>Fecha / Hora</th>
+                    <th>Unidad / Nodo</th>
+                    <th>Peso Tina (kg)</th>
+                    <th>Litros Calc. (L)</th>
+                    <th>Humedad (%)</th>
+                    <th>Temp (°C)</th>
+                    <th>Viento (m/s)</th>
+                    <th>Estado Sensor</th>
+                  </tr>
+                </thead>
+                <tbody id="historialTableBody">
+                  <!-- Inyectado vía JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================== -->
+        <!-- VISTA 3: EVENTOS DE VACIADO (UC-04, UC-05) -->
+        <!-- ============================================== -->
+        <section class="view-panel" id="view-vaciados">
+          <div class="view-header">
+            <div>
+              <h1 class="view-title">Registro de Eventos de Vaciado</h1>
+              <p class="view-subtitle">Detección algorítmica de caídas abruptas de peso en tina colectora (descarga y reinicio)</p>
+            </div>
+            <div class="stat-pill-group">
+              <span class="pill-metric">Total Vaciados Mes: <strong id="totalVaciadosCount">8</strong></span>
+              <span class="pill-metric">Agua Recolectada Total: <strong id="totalAguaVaciada">348.5 L</strong></span>
+            </div>
+          </div>
+
+          <div class="table-card">
+            <div class="table-responsive">
+              <table class="data-table" id="tablaVaciados">
+                <thead>
+                  <tr>
+                    <th>ID Evento</th>
+                    <th>Fecha y Hora</th>
+                    <th>Nodo / Unidad</th>
+                    <th>Peso Previo (kg)</th>
+                    <th>Peso Posterior (kg)</th>
+                    <th>Volumen Vaciado (L)</th>
+                    <th>Tipo de Detección</th>
+                  </tr>
+                </thead>
+                <tbody id="vaciadosTableBody">
+                  <!-- Inyectado vía JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================== -->
+        <!-- VISTA 4: PREDICCIÓN HÍDRICA (UC-10, UC-11) -->
+        <!-- ============================================== -->
+        <section class="view-panel" id="view-prediccion">
+          <div class="view-header">
+            <div>
+              <h1 class="view-title">Predicción y Estimación de Niebla</h1>
+              <p class="view-subtitle">Proyección de captación basada en Machine Learning y Patrón Strategy GoF</p>
+            </div>
+            <div class="strategy-selector-box">
+              <label>Estrategia Activa:</label>
+              <select id="selectStrategy" class="custom-select">
+                <option value="ML" selected>Modelo Predictivo Machine Learning (Random Forest)</option>
+                <option value="HISTORICO">Promedio Histórico Estacional</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="prediction-highlight-card">
+            <div class="prediction-info">
+              <span class="pred-tag">PROYECCIÓN PRÓXIMAS 48 HORAS</span>
+              <h2>Estimación de Captación: <span class="highlight-cyan" id="predTotal48h">89.4 Litros</span></h2>
+              <p>Alta probabilidad de niebla orográfica densa entre las <strong>03:00 AM y las 07:30 AM</strong> debido a inversión térmica y viento del Pacífico (96% HR estimada).</p>
+            </div>
+            <div class="pred-accuracy-badge">
+              <span class="acc-val">92.4%</span>
+              <small>Confianza Modelo</small>
+            </div>
+          </div>
+
+          <div class="chart-container-card">
+            <div class="card-toolbar">
+              <div class="toolbar-title">
+                <h3>Proyección de Captación Diaria (Próximos 7 Días)</h3>
+                <small>Valores estimados de litros aprovechables para riego y uso comunal</small>
+              </div>
+            </div>
+            <div class="chart-canvas-box" style="height: 340px;">
+              <canvas id="predictionChart"></canvas>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================== -->
+        <!-- VISTA 5: GESTIÓN DE NODOS Y DISPOSITIVOS (UC-15, 16) -->
+        <!-- ============================================== -->
+        <section class="view-panel" id="view-nodos">
+          <div class="view-header">
+            <div>
+              <h1 class="view-title">Nodos de Atrapanieblas y Dispositivos IoT</h1>
+              <p class="view-subtitle">Inventario de unidades desplegadas en Pachía, credenciales de balanzas y estaciones meteorológicas</p>
+            </div>
+            <button class="action-btn primary-btn" id="btnNuevoNodo">+ Registrar Nuevo Nodo</button>
+          </div>
+
+          <div class="nodes-grid" id="nodesContainer">
+            <!-- Renderizado dinámico -->
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- MODAL DE LOGIN / AUTENTICACIÓN (UC-13) -->
+  <div class="modal-backdrop" id="loginModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Iniciar Sesión en SIMACMART</h3>
+        <button class="close-modal-btn" id="closeLoginModal">✕</button>
+      </div>
+      <form id="loginForm" class="modal-form">
+        <div class="form-group">
+          <label for="inputUsuario">Nombre de Usuario o Correo</label>
+          <input type="text" id="inputUsuario" placeholder="ej. admin o operador" required value="admin">
+        </div>
+        <div class="form-group">
+          <label for="inputPassword">Contraseña</label>
+          <input type="password" id="inputPassword" placeholder="••••••••" required value="admin123">
+        </div>
+        <div class="quick-roles-pills">
+          <small>Prueba rápida:</small>
+          <button type="button" class="role-pill-btn" onclick="document.getElementById('inputUsuario').value='admin'; document.getElementById('inputPassword').value='admin123'">Admin</button>
+          <button type="button" class="role-pill-btn" onclick="document.getElementById('inputUsuario').value='operador'; document.getElementById('inputPassword').value='operador123'">Operador</button>
+          <button type="button" class="role-pill-btn" onclick="document.getElementById('inputUsuario').value='investigador'; document.getElementById('inputPassword').value='investigador123'">Investigador</button>
+        </div>
+        <div class="form-error" id="loginError" style="display: none;"></div>
+        <div class="modal-actions">
+          <button type="button" class="action-btn" id="cancelLoginBtn">Cancelar</button>
+          <button type="submit" class="action-btn primary-btn" id="submitLoginBtn">Ingresar al Sistema</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- SCRIPT BOOTSTRAPPER (ES6 Modules) -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+.git
+.gitignore
+.gradle
+build
+bin
+.idea
+*.iml
+*.log
+.DS_Store
+*.bat
