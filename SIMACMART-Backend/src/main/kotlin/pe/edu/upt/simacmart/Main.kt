@@ -26,8 +26,13 @@ import pe.edu.upt.simacmart.ingesta.domain.service.RangosHandler
 import pe.edu.upt.simacmart.ingesta.infrastructure.adapter.inbound.*
 import pe.edu.upt.simacmart.ingesta.infrastructure.adapter.outbound.JdbcUnitOfWork
 import pe.edu.upt.simacmart.ingesta.infrastructure.adapter.outbound.VerificarDispositivoAdapter
-import pe.edu.upt.simacmart.monitoreo.application.service.ServicioMonitoreo
-import pe.edu.upt.simacmart.monitoreo.infrastructure.adapter.inbound.DashboardHttpController
+import pe.edu.upt.simacmart.monitoreo.application.service.ServicioConsultaMonitoreo
+import pe.edu.upt.simacmart.monitoreo.application.service.SupervisorDispositivos
+import pe.edu.upt.simacmart.monitoreo.infrastructure.adapter.inbound.DashboardHttpAdapter
+import pe.edu.upt.simacmart.monitoreo.infrastructure.adapter.inbound.DashboardNotificacionesAdapter
+import pe.edu.upt.simacmart.monitoreo.infrastructure.adapter.inbound.PlanificadorSupervision
+import pe.edu.upt.simacmart.monitoreo.infrastructure.adapter.outbound.JdbcActividadDispositivos
+import pe.edu.upt.simacmart.monitoreo.infrastructure.adapter.outbound.JdbcConsultaMonitoreoQuery
 import pe.edu.upt.simacmart.prediccion.application.service.ServicioPrediccion
 import pe.edu.upt.simacmart.prediccion.application.service.ServicioPrediccionMensual
 import pe.edu.upt.simacmart.prediccion.infrastructure.adapter.inbound.PrediccionHttpController
@@ -39,7 +44,7 @@ import pe.edu.upt.simacmart.shared.infrastructure.http.ServidorHttpMonolito
 fun main() {
     println("=================================================================")
     println(">>> INICIANDO SISTEMA MONOLITO MODULAR SIMACMART (UPT)")
-    println(">>> Arquitectura Hexagonal + Patrones GoF (Strategy, Adapter, CoR, UoW)")
+    println(">>> Arquitectura Hexagonal + Patrones GoF (Strategy, Adapter, CoR, UoW, Observer)")
     println("=================================================================")
 
     // FASE 1: Inicialización de la Base de Datos Local / Remota
@@ -51,7 +56,7 @@ fun main() {
     val servidor = ServidorHttpMonolito(port = puertoServidor)
 
     // =========================================================================
-    // MÓDULO 1: Cuentas y Seguridad
+    // MÓDULO 1: Cuentas y Seguridad (AutenticarSesion)
     // =========================================================================
     val cuentaRepo = PostgresCuentaRepository()
     val servicioCuentas = ServicioCuentas(cuentaRepo)
@@ -59,7 +64,7 @@ fun main() {
     authController.registrarRutas(servidor)
 
     // =========================================================================
-    // MÓDULO 2: Captación Hídrica y Detección de Vaciados (Diagrama 2)
+    // MÓDULO 2: Captación Hídrica y Detección de Vaciados (RN-03)
     // =========================================================================
     val captacionRepo = JdbcCaptacionRepository()
     val servicioCaptacion = ServicioCaptacion(captacionRepo)
@@ -74,7 +79,7 @@ fun main() {
     camposHandler.establecerSiguiente(fechaHandler)
     fechaHandler.establecerSiguiente(rangosHandler)
 
-    // Adaptadores de Persistencia
+    // Adaptadores de Persistencia (Unit of Work)
     val verificador = VerificarDispositivoAdapter(dataSource)
     val uow = JdbcUnitOfWork(dataSource)
 
@@ -102,11 +107,21 @@ fun main() {
     ingestaHttpController.registrarRutas(servidor)
 
     // =========================================================================
-    // MÓDULO 4: Monitoreo y Dashboard
+    // MÓDULO 4: Dashboard con Adapter y Observer (Diagrama 4)
     // =========================================================================
-    val servicioMonitoreo = ServicioMonitoreo()
-    val dashboardController = DashboardHttpController(servicioMonitoreo)
-    dashboardController.registrarRutas(servidor)
+    val consultaQuery = JdbcConsultaMonitoreoQuery(dataSource)
+    val actividadDispositivos = JdbcActividadDispositivos(dataSource)
+    val servicioConsultaMonitoreo = ServicioConsultaMonitoreo(consultaQuery, actividadDispositivos)
+
+    val supervisorDispositivos = SupervisorDispositivos(actividadDispositivos)
+    val dashboardNotificaciones = DashboardNotificacionesAdapter(servicioCuentas, servicioConsultaMonitoreo)
+    supervisorDispositivos.suscribir(dashboardNotificaciones)
+
+    val planificadorSupervision = PlanificadorSupervision(supervisorDispositivos)
+    planificadorSupervision.iniciar()
+
+    val dashboardHttpAdapter = DashboardHttpAdapter(servicioConsultaMonitoreo, servicioCuentas)
+    dashboardHttpAdapter.registrarRutas(servidor)
 
     // =========================================================================
     // MÓDULO 5: Predicción Hídrica con Strategy y Adapter (Diagrama 3 - Hernández y Arce)

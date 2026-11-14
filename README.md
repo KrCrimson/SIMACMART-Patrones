@@ -75,6 +75,11 @@ SIMACMART-Patrones/
 * **Estrategia ML:** `PrediccionConModeloML` se desacopla del motor físico mediante los puertos `ObtenerModeloActivo` y `EvaluarModelo`.
 * **Estrategia Histórica:** `PromedioHistoricoMensual` actúa como línea base estacional de alta disponibilidad.
 
+### 4. Dashboard de Monitoreo: Adapter y Observer (Supervisión y Alertas)
+* **Controlador HTTP (Adapter):** `DashboardHttpAdapter` expone consultas de resumen diario, historial y comparación, autenticando sesión con `AutenticarSesion` (ServicioCuentas) y retornando 401 si expira.
+* **Notificaciones en Tiempo Real (Adapter & Observer):** `DashboardNotificacionesAdapter` implementa `ObservadorMonitoreo` emitiendo eventos Server-Sent Events (SSE) hacia el frontend con canal de latido (Heartbeat cada 20s).
+* **Supervisión Activa de Dispositivos (Subject):** `SupervisorDispositivos` actúa como sujeto observable; junto con `PlanificadorSupervision` (tick cada 30s), vigila que ningún dispositivo supere los 10 minutos de silencio (2 × intervalo esperado de 5 min), emitiendo la alerta `SIN_REPORTE`.
+
 ---
 
 ## 🚀 Despliegue Local Rápido

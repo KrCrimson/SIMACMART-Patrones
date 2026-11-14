@@ -118,3 +118,18 @@ CREATE TABLE IF NOT EXISTS cuentas (
 CREATE INDEX IF NOT EXISTS idx_balanza_unidad_fecha ON lecturas_balanza(id_unidad, fecha_hora DESC);
 CREATE INDEX IF NOT EXISTS idx_estacion_unidad_fecha ON lecturas_estacion(id_unidad, fecha_hora DESC);
 CREATE INDEX IF NOT EXISTS idx_captacion_unidad_fecha ON captacion_agua(id_unidad, inicio_periodo DESC);
+
+CREATE TABLE IF NOT EXISTS lecturas (
+    id_lectura BIGSERIAL PRIMARY KEY,
+    id_dispositivo INT NOT NULL,
+    clave_origen VARCHAR(120) NOT NULL,
+    secuencia BIGINT,
+    fecha_medicion TIMESTAMPTZ NOT NULL,
+    fecha_recepcion TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    es_valida BOOLEAN NOT NULL DEFAULT TRUE,
+    motivos_invalidez TEXT,
+    CONSTRAINT uq_dispositivo_clave UNIQUE (id_dispositivo, clave_origen),
+    FOREIGN KEY (id_dispositivo) REFERENCES dispositivos(id_dispositivo) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_lecturas_disp_clave ON lecturas(id_dispositivo, clave_origen);

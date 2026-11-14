@@ -128,3 +128,18 @@ CREATE TABLE IF NOT EXISTS cuentas (
 CREATE INDEX IF NOT EXISTS idx_balanza_unidad_fecha ON lecturas_balanza(id_unidad, fecha_hora DESC);
 CREATE INDEX IF NOT EXISTS idx_estacion_unidad_fecha ON lecturas_estacion(id_unidad, fecha_hora DESC);
 CREATE INDEX IF NOT EXISTS idx_captacion_unidad_fecha ON captacion_agua(id_unidad, inicio_periodo DESC);
+
+CREATE TABLE IF NOT EXISTS lecturas (
+    id_lectura INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_dispositivo INTEGER NOT NULL,
+    clave_origen TEXT NOT NULL,
+    secuencia INTEGER,
+    fecha_medicion TEXT NOT NULL,
+    fecha_recepcion TEXT NOT NULL,
+    es_valida INTEGER DEFAULT 1,
+    motivos_invalidez TEXT,
+    UNIQUE (id_dispositivo, clave_origen),
+    FOREIGN KEY (id_dispositivo) REFERENCES dispositivos(id_dispositivo)
+);
+
+CREATE INDEX IF NOT EXISTS idx_lecturas_disp_clave ON lecturas(id_dispositivo, clave_origen);

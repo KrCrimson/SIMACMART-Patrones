@@ -47,3 +47,19 @@ typealias AdaptadorAlmacenModelo = pe.edu.upt.simacmart.prediccion.infrastructur
 typealias AdaptadorEvaluadorArtefacto = pe.edu.upt.simacmart.prediccion.infrastructure.adapter.outbound.EvaluadorArtefactoAdapter
 typealias AdaptadorPreparadorEntrada = pe.edu.upt.simacmart.prediccion.infrastructure.adapter.outbound.PreparadorEntradaAdapter
 typealias AdaptadorJdbcPrediccionRepo = pe.edu.upt.simacmart.prediccion.infrastructure.adapter.outbound.JdbcPrediccionRepository
+
+
+// --- DIAGRAMA 4: DASHBOARD: ADAPTER Y OBSERVER ---
+typealias PuertoAutenticarSesion = pe.edu.upt.simacmart.cuentas.application.port.inbound.AutenticarSesion
+typealias PuertoConsultarMonitoreo = pe.edu.upt.simacmart.monitoreo.application.port.inbound.ConsultarMonitoreo
+typealias GestorServicioConsultaMonitoreo = pe.edu.upt.simacmart.monitoreo.application.service.ServicioConsultaMonitoreo
+typealias PuertoConsultaMonitoreoQuery = pe.edu.upt.simacmart.monitoreo.application.port.outbound.ConsultaMonitoreoQuery
+typealias PuertoConsultaActividadDispositivos = pe.edu.upt.simacmart.monitoreo.application.port.outbound.ConsultaActividadDispositivos
+typealias PuertoSupervisarDispositivos = pe.edu.upt.simacmart.monitoreo.application.port.inbound.SupervisarDispositivos
+typealias SujetoSupervisorDispositivos = pe.edu.upt.simacmart.monitoreo.application.service.SupervisorDispositivos
+typealias ObservadorNotificacionesMonitoreo = pe.edu.upt.simacmart.monitoreo.application.port.outbound.ObservadorMonitoreo
+typealias AdaptadorDashboardHttp = pe.edu.upt.simacmart.monitoreo.infrastructure.adapter.inbound.DashboardHttpAdapter
+typealias AdaptadorDashboardNotificaciones = pe.edu.upt.simacmart.monitoreo.infrastructure.adapter.inbound.DashboardNotificacionesAdapter
+typealias GestorPlanificadorSupervision = pe.edu.upt.simacmart.monitoreo.infrastructure.adapter.inbound.PlanificadorSupervision
+typealias AdaptadorJdbcConsultaMonitoreo = pe.edu.upt.simacmart.monitoreo.infrastructure.adapter.outbound.JdbcConsultaMonitoreoQuery
+typealias AdaptadorJdbcActividadDispositivos = pe.edu.upt.simacmart.monitoreo.infrastructure.adapter.outbound.JdbcActividadDispositivos

@@ -160,6 +160,17 @@ Respuesta:
 {"exito":true,"mensaje":"Lectura aceptada y persistida exitosamente."}
 ```
 
+### Ejemplo de Prueba (Dashboard y Monitoreo - Diagrama 4):
+```bash
+# Consultar Resumen Diario de Captación y Estado
+curl -X GET http://localhost:8080/api/v1/monitoreo/resumen-dia \
+  -H "Authorization: Bearer sesion-activa-demo"
+
+# Escuchar Stream de Alertas en Tiempo Real (Server-Sent Events)
+curl -N -X GET http://localhost:8080/api/v1/monitoreo/stream \
+  -H "Authorization: Bearer sesion-activa-demo"
+```
+
 ---
 
 ## 5. Solución de Problemas Comunes
