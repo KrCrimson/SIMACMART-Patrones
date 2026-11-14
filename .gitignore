@@ -1,6 +1,17 @@
-# ============================================
-# Git Ignore — SIMACMART-Patrones
-# ============================================
+# ============================================================================
+# Git Ignore — SIMACMART (UPT - Arquitectura de Software)
+# ============================================================================
+
+# Carpeta privada / borradores internos / material docente restringido
+_privado/
+_internal/
+docs_privados/
+
+# Entornos y Secretos
+.env
+.env.local
+.env.*.local
+*.local
 
 # Gradle caches, daemons & binaries
 .gradle/
@@ -8,16 +19,15 @@ build/
 **/build/
 **/.gradle/
 
-# Archivos de empaquetado y binarios Java/Kotlin
+# Binarios Java / Kotlin
 *.class
 *.jar
 *.war
 *.ear
-# Exceptuar el wrapper de Gradle para permitir compilar en cualquier máquina
 !gradle-wrapper.jar
 !**/gradle/wrapper/gradle-wrapper.jar
 
-# Bases de datos locales y persistencia SQLite
+# Bases de datos locales
 *.db
 *.db-journal
 *.db-shm
@@ -28,13 +38,7 @@ data/*.db
 **/data/*.db
 **/data/simacmart.db
 
-# Configuración de entornos y secretos
-.env
-.env.local
-.env.*.local
-*.local
-
-# IDEs (IntelliJ IDEA, Android Studio, VS Code, Eclipse)
+# IDEs (IntelliJ IDEA, VS Code, Eclipse)
 .idea/
 *.iml
 *.iws
@@ -52,8 +56,5 @@ ehthumbs.db
 desktop.ini
 $RECYCLE.BIN/
 
-# Graphify: ignorar cachés intermedias y archivos temporales dotfiles
-# (Se conservan graph.html, graph.json y GRAPH_REPORT.md)
-graphify-out/cache/
-graphify-out/.*
-graphify-out/manifest.json
+# Graphify / Herramientas de análisis
+graphify-out/

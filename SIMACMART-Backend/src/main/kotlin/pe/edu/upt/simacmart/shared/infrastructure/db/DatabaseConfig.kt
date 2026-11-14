@@ -15,9 +15,9 @@ enum class TipoMotor {
  * a SQLite local ante desconexion o entorno offline (Store-and-Forward).
  */
 object DatabaseConfig {
-    var postgresUrl: String = System.getenv("DB_URL") ?: "jdbc:postgresql://localhost:5432/simacmart"
-    var postgresUser: String = System.getenv("DB_USER") ?: "postgres"
-    var postgresPass: String = System.getenv("DB_PASSWORD") ?: "postgres"
+    var postgresUrl: String = System.getenv("DB_URL") ?: System.getenv("DATABASE_URL") ?: "jdbc:postgresql://localhost:5432/simacmart"
+    var postgresUser: String = System.getenv("DB_USER") ?: System.getenv("DATABASE_USER") ?: "postgres"
+    var postgresPass: String = System.getenv("DB_PASSWORD") ?: System.getenv("DATABASE_PASSWORD") ?: "postgres"
     var sqlitePath: String = System.getenv("SQLITE_PATH") ?: "data/simacmart.db"
 
     private var motorActivo: TipoMotor = TipoMotor.SQLITE

@@ -23,6 +23,9 @@ dependencies {
     // Serialización JSON liviana (Jackson o Gson)
     implementation("com.google.code.gson:gson:2.10.1")
 
+    // Cliente MQTT para integracion con Broker EMQX Cloud (Patron Observer / Adapter)
+    implementation("org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.5")
+
     // Seguridad de contraseñas (bcrypt para cuentas de usuario)
     implementation("org.mindrot:jbcrypt:0.4")
 
